@@ -1,21 +1,10 @@
 # AdventOfCode
 
-**TODO: Add description**
+This is the set of my solutions to Advent of Code 2022, in Elixir. It requires a working elixir setup, which
+you can get with, say `apt install elixir` on Ubuntu.
 
-## Installation
+To run them, configure `:path_prefix` in `config/config.exs` to point to where this is checked out, then run
+`iex -S mix`. This will get you an Elixir prompt. You can do things like `Day1.solve1()`, `Day3.solve2()`, etc.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `advent_of_code` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:advent_of_code, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/advent_of_code](https://hexdocs.pm/advent_of_code).
+For days where I bothered to save a small input `Day1.solve2("small")` will run against that.
 
