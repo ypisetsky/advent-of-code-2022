@@ -37,7 +37,6 @@ defmodule Day5 do
 
     state_lines = Enum.reverse(state_lines) |> Enum.drop(1)
 
-
     state = Enum.reduce(state_lines, init_state(), &parse_state_line/2)
 
     {state, Enum.drop(data_lines, 1)}
@@ -47,7 +46,6 @@ defmodule Day5 do
     [_, count, _, src, _, dest] = String.split(line, " ")
     cb.(state, src, dest, String.to_integer(count))
   end
-
 
   def parse_state_line(line, state) do
     line
