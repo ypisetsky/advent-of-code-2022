@@ -13,7 +13,6 @@ defmodule Day6 do
   end
 
   def pos(arr,a,b,c,i) do
-    Logger.warn("Good #{inspect(arr)} #{a} #{b} #{c} #{i}")
     i
   end
 
