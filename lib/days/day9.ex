@@ -1,5 +1,4 @@
 defmodule Day9 do
-
   require Logger
 
   def solve1(suffix \\ "") do
@@ -17,7 +16,7 @@ defmodule Day9 do
   end
 
   def startstate(i) do
-    1..i |> Enum.map(fn _ -> {0,0} end)
+    1..i |> Enum.map(fn _ -> {0, 0} end)
   end
 
   def walkline(line, state) do
@@ -60,12 +59,11 @@ defmodule Day9 do
 
   def tailstep({hi, hj} = head, {ti, tj} = tail) do
     new_tail = {movecloser(hi, ti), movecloser(hj, tj)}
+
     if new_tail == head do
       tail
     else
       new_tail
     end
   end
-
-
 end
