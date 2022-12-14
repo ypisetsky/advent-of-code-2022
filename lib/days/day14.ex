@@ -10,13 +10,19 @@ defmodule Day14 do
 
     lowest = 2 + (state |> Map.keys |> Enum.map(&elem(&1,1)) |> Enum.max())
     state = Enum.reduce(499-lowest..501+lowest, state, &Map.put(&2, {&1, lowest}, '='))
+
     run_it(state, 0)
   end
 
   def run_it(state, count) do
     case place_sand(state) do
+      # Part 2 end condition: we reached the source
       {true, %{{500, 0} => _}} -> count + 1
+
+      # We placed the sand
       {true, state} -> run_it(state, count + 1)
+
+      # Part 1 end condition: this sand reached the end of the abyss
       {false, _state} -> count
     end
   end
