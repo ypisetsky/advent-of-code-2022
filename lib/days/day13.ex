@@ -16,7 +16,7 @@ defmodule Day13 do
       |> Enum.filter(&(&1 != ""))
       |> Enum.map(&(Code.eval_string(&1) |> elem(0)))
       |> Enum.concat([2, 6])
-      |> Enum.sort(&cmp(&1, &2) >= 0)
+      |> Enum.sort(&(cmp(&1, &2) >= 0))
       |> Enum.with_index()
       |> Map.new()
 
