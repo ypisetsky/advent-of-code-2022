@@ -57,27 +57,27 @@ defmodule Day17 do
   end
 
   def run(%__MODULE__{} = state, [piece | pieces], all_pieces, winds, all_winds) do
-    placed_piece = piece |> Enum.map(fn {x, y} -> {x, state.max_y + y} end)
-    {winds, dropped_piece} = drop(placed_piece, state.dropped_pieces, winds, all_winds)
+    {winds, dropped_piece} = drop(piece, state.dropped_pieces, winds, all_winds, state.max_y)
 
     {_, piece_max_y} = hd(dropped_piece)
 
-    if Map.has_key?(state.cursor_to_idx, {pieces, winds}) and state.to_drop < 0 do
-      {state.cursor_to_idx[{pieces, winds}], state.dropped + 1, max(piece_max_y, state.max_y),
+    {dropped_pieces, new_max_y} = merge_pieces(state.dropped_pieces, dropped_piece, state.max_y, piece_max_y)
+
+    if Map.has_key?(state.cursor_to_idx, {pieces, winds, dropped_pieces}) and state.to_drop < 0 do
+      {state.cursor_to_idx[{pieces, winds, dropped_pieces}], state.dropped + 1, new_max_y,
        piece, dropped_piece}
     else
       state = %{
         state
         | to_drop: state.to_drop - 1,
           dropped: state.dropped + 1,
-          dropped_pieces:
-            MapSet.union(state.dropped_pieces, MapSet.new(dropped_piece)) |> trim(piece_max_y),
-          max_y: max(piece_max_y, state.max_y),
+          dropped_pieces: dropped_pieces,
+          max_y: new_max_y,
           cursor_to_idx:
             Map.put(
               state.cursor_to_idx,
-              {pieces, winds},
-              {state.dropped + 1, max(piece_max_y, state.max_y)}
+              {pieces, winds, dropped_pieces},
+              {state.dropped + 1, new_max_y}
             )
       }
 
@@ -85,44 +85,55 @@ defmodule Day17 do
     end
   end
 
-  def trim(ms, my) do
-    ms |> Enum.filter(fn {_, y} -> y > my - 100 end) |> MapSet.new()
+  def merge_pieces(dropped_pieces, dropped_piece, old_max_y, piece_max_y) do
+    delta = max(piece_max_y, 0)
+    new_pieces = dropped_piece
+      |> Enum.concat(dropped_pieces)
+      |> Enum.map(fn {x, y} -> {x, y - delta} end)
+      |> Enum.filter(&elem(&1, 1) > -45)
+      |> MapSet.new()
+
+    {new_pieces, old_max_y + delta}
   end
 
-  def drop(piece, dropped_pieces, [], all_winds) do
-    drop(piece, dropped_pieces, all_winds, all_winds)
+  def trim(ms) do
+    ms |> Enum.filter(fn {_, y} -> y > -100 end) |> MapSet.new()
   end
 
-  def drop(piece, dropped_pieces, [wind | winds], all_winds) do
+  def drop(piece, dropped_pieces, [], all_winds, max_y) do
+    drop(piece, dropped_pieces, all_winds, all_winds, max_y)
+  end
+
+  def drop(piece, dropped_pieces, [wind | winds], all_winds, max_y) do
     incr =
       case wind do
         ?> -> {1, 0}
         ?< -> {-1, 0}
       end
 
-    {_did_move, piece} = move(piece, incr, dropped_pieces)
-    {did_move, piece} = move(piece, {0, -1}, dropped_pieces)
+    {_did_move, piece} = move(piece, incr, dropped_pieces, max_y)
+    {did_move, piece} = move(piece, {0, -1}, dropped_pieces, max_y)
 
     # Logger.warn("Stepping piece to #{inspect(piece)} thanks to #{wind} #{inspect(incr)}")
 
     if did_move do
-      drop(piece, dropped_pieces, winds, all_winds)
+      drop(piece, dropped_pieces, winds, all_winds, max_y)
     else
       {winds, piece}
     end
   end
 
-  def move(piece, {dx, dy}, dropped_pieces) do
+  def move(piece, {dx, dy}, dropped_pieces, max_y) do
     updated_piece = Enum.map(piece, fn {x, y} -> {x + dx, y + dy} end)
 
-    if Enum.any?(updated_piece, &(MapSet.member?(dropped_pieces, &1) or oob(&1))) do
+    if Enum.any?(updated_piece, &(MapSet.member?(dropped_pieces, &1) or oob(&1, max_y))) do
       {false, piece}
     else
       {true, updated_piece}
     end
   end
 
-  def oob({x, y}) do
-    y <= 0 or x < 0 or x >= 7
+  def oob({x, y}, max_y) do
+    y <= -max_y or x < 0 or x >= 7
   end
 end
