@@ -9,7 +9,6 @@ defmodule Day17 do
 
   def solve1(suffix \\ "", to_drop) do
     winds = Input.get_lines(17, suffix) |> hd |> String.to_charlist()
-    Logger.warn("Wind count is #{Enum.count(winds)}")
 
     pieces = [
       [{2, 4}, {3, 4}, {4, 4}, {5, 4}],
@@ -33,7 +32,7 @@ defmodule Day17 do
       [{2, 5}, {3, 5}, {2, 4}, {3, 4}]
     ]
 
-    {{first_occurrence, first_max_y}, second_occurrence, second_max_y, p, dp} =
+    {{first_occurrence, first_max_y}, second_occurrence, second_max_y, p, dp, new_pieces, new_winds} =
       run(%__MODULE__{to_drop: -1000, dropped: 0}, pieces, pieces, winds, winds)
 
     period = second_occurrence - first_occurrence
@@ -44,8 +43,8 @@ defmodule Day17 do
       "Found a cycle! #{inspect({first_occurrence, first_max_y, second_occurrence, second_max_y, iters, to_go, p, dp})}"
     )
 
-    %{max_y: max_y_rem} = run(%__MODULE__{to_drop: to_go}, pieces, pieces, winds, winds)
-    iters * (second_max_y - first_max_y) + max_y_rem + first_max_y
+    %{max_y: result} = run(%__MODULE__{max_y: iters * (second_max_y - first_max_y) + first_max_y, to_drop: to_go, dropped_pieces: dp}, new_pieces, pieces, new_winds, winds)
+    result
   end
 
   def run(%__MODULE__{to_drop: 0} = state, _, _, _, _) do
@@ -63,9 +62,9 @@ defmodule Day17 do
 
     {dropped_pieces, new_max_y} = merge_pieces(state.dropped_pieces, dropped_piece, state.max_y, piece_max_y)
 
-    if Map.has_key?(state.cursor_to_idx, {pieces, winds, dropped_pieces}) and state.to_drop < 0 do
-      {state.cursor_to_idx[{pieces, winds, dropped_pieces}], state.dropped + 1, new_max_y,
-       piece, dropped_piece}
+    if Map.has_key?(state.cursor_to_idx, :erlang.phash2({pieces, winds, dropped_pieces})) and state.to_drop < 0 do
+      {state.cursor_to_idx[:erlang.phash2({pieces, winds, dropped_pieces})], state.dropped + 1, new_max_y,
+       piece, dropped_pieces, pieces, winds}
     else
       state = %{
         state
@@ -76,7 +75,7 @@ defmodule Day17 do
           cursor_to_idx:
             Map.put(
               state.cursor_to_idx,
-              {pieces, winds, dropped_pieces},
+              :erlang.phash2({pieces, winds, dropped_pieces}),
               {state.dropped + 1, new_max_y}
             )
       }
@@ -90,14 +89,10 @@ defmodule Day17 do
     new_pieces = dropped_piece
       |> Enum.concat(dropped_pieces)
       |> Enum.map(fn {x, y} -> {x, y - delta} end)
-      |> Enum.filter(&elem(&1, 1) > -45)
+      |> Enum.filter(&elem(&1, 1) > -100)
       |> MapSet.new()
 
     {new_pieces, old_max_y + delta}
-  end
-
-  def trim(ms) do
-    ms |> Enum.filter(fn {_, y} -> y > -100 end) |> MapSet.new()
   end
 
   def drop(piece, dropped_pieces, [], all_winds, max_y) do
@@ -113,8 +108,6 @@ defmodule Day17 do
 
     {_did_move, piece} = move(piece, incr, dropped_pieces, max_y)
     {did_move, piece} = move(piece, {0, -1}, dropped_pieces, max_y)
-
-    # Logger.warn("Stepping piece to #{inspect(piece)} thanks to #{wind} #{inspect(incr)}")
 
     if did_move do
       drop(piece, dropped_pieces, winds, all_winds, max_y)
