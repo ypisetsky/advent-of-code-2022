@@ -24,21 +24,20 @@ defmodule Day18 do
 
   def solve2(suffix \\ "") do
     data = Input.get_lines(18, suffix) |> Enum.map(&parse_line/1) |> MapSet.new()
-    min_x = data |> Enum.map(&elem(&1, 0)) |> Enum.min()
-    min_y = data |> Enum.map(&elem(&1, 1)) |> Enum.min()
-    min_z = data |> Enum.map(&elem(&1, 2)) |> Enum.min()
 
-    max_x = data |> Enum.map(&elem(&1, 0)) |> Enum.max()
-    max_y = data |> Enum.map(&elem(&1, 1)) |> Enum.max()
-    max_z = data |> Enum.map(&elem(&1, 2)) |> Enum.max()
-    exterior = make_exterior(min_x - 1, min_y- 1, min_z- 1, max_x + 1, max_y + 1, max_z + 1, data)
-    Enum.map(data, fn point -> Enum.count(neighbors(point, &MapSet.member?(exterior, &1))) end)
+    min_x = -1 + (data |> Enum.map(&elem(&1, 0)) |> Enum.min())
+    min_y = -1 + (data |> Enum.map(&elem(&1, 1)) |> Enum.min())
+    min_z = -1 + (data |> Enum.map(&elem(&1, 2)) |> Enum.min())
+    max_x = 1 + (data |> Enum.map(&elem(&1, 0)) |> Enum.max())
+    max_y = 1 + (data |> Enum.map(&elem(&1, 1)) |> Enum.max())
+    max_z = 1 + (data |> Enum.map(&elem(&1, 2)) |> Enum.max())
+
+    src = {min_x, min_y, min_z}
+    exterior = bfs(MapSet.new([src]), :queue.in(src, :queue.new()), data, min_x..max_x, min_y..max_y, min_z..max_z)
+
+    data
+    |> Enum.map(fn point -> Enum.count(neighbors(point, &MapSet.member?(exterior, &1))) end)
     |> Enum.sum()
-  end
-
-  def make_exterior(minx, miny, minz, maxx, maxy, maxz, lava) do
-    src = {minx, miny, minz}
-    bfs(MapSet.new([src]), :queue.in(src, :queue.new()), lava, minx..maxx, miny..maxy, minz..maxz)
   end
 
   def bfs(found, queue, lava, xbounds, ybounds, zbounds) do
