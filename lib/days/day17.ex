@@ -32,8 +32,8 @@ defmodule Day17 do
       [{2, 5}, {3, 5}, {2, 4}, {3, 4}]
     ]
 
-    {{first_occurrence, first_max_y}, second_occurrence, second_max_y, p, dp, new_pieces, new_winds} =
-      run(%__MODULE__{to_drop: -1000, dropped: 0}, pieces, pieces, winds, winds)
+    {{first_occurrence, first_max_y}, second_occurrence, second_max_y, p, dp, new_pieces,
+     new_winds} = run(%__MODULE__{to_drop: -1000, dropped: 0}, pieces, pieces, winds, winds)
 
     period = second_occurrence - first_occurrence
     iters = div(1_000_000_000_000 - first_occurrence, period)
@@ -43,7 +43,19 @@ defmodule Day17 do
       "Found a cycle! #{inspect({first_occurrence, first_max_y, second_occurrence, second_max_y, iters, to_go, p, dp})}"
     )
 
-    %{max_y: result} = run(%__MODULE__{max_y: iters * (second_max_y - first_max_y) + first_max_y, to_drop: to_go, dropped_pieces: dp}, new_pieces, pieces, new_winds, winds)
+    %{max_y: result} =
+      run(
+        %__MODULE__{
+          max_y: iters * (second_max_y - first_max_y) + first_max_y,
+          to_drop: to_go,
+          dropped_pieces: dp
+        },
+        new_pieces,
+        pieces,
+        new_winds,
+        winds
+      )
+
     result
   end
 
@@ -60,11 +72,13 @@ defmodule Day17 do
 
     {_, piece_max_y} = hd(dropped_piece)
 
-    {dropped_pieces, new_max_y} = merge_pieces(state.dropped_pieces, dropped_piece, state.max_y, piece_max_y)
+    {dropped_pieces, new_max_y} =
+      merge_pieces(state.dropped_pieces, dropped_piece, state.max_y, piece_max_y)
 
-    if Map.has_key?(state.cursor_to_idx, :erlang.phash2({pieces, winds, dropped_pieces})) and state.to_drop < 0 do
-      {state.cursor_to_idx[:erlang.phash2({pieces, winds, dropped_pieces})], state.dropped + 1, new_max_y,
-       piece, dropped_pieces, pieces, winds}
+    if Map.has_key?(state.cursor_to_idx, :erlang.phash2({pieces, winds, dropped_pieces})) and
+         state.to_drop < 0 do
+      {state.cursor_to_idx[:erlang.phash2({pieces, winds, dropped_pieces})], state.dropped + 1,
+       new_max_y, piece, dropped_pieces, pieces, winds}
     else
       state = %{
         state
@@ -86,10 +100,12 @@ defmodule Day17 do
 
   def merge_pieces(dropped_pieces, dropped_piece, old_max_y, piece_max_y) do
     delta = max(piece_max_y, 0)
-    new_pieces = dropped_piece
+
+    new_pieces =
+      dropped_piece
       |> Enum.concat(dropped_pieces)
       |> Enum.map(fn {x, y} -> {x, y - delta} end)
-      |> Enum.filter(&elem(&1, 1) > -100)
+      |> Enum.filter(&(elem(&1, 1) > -100))
       |> MapSet.new()
 
     {new_pieces, old_max_y + delta}

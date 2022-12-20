@@ -1,7 +1,6 @@
 defmodule Day16 do
   require Logger
 
-
   ################ Input handling / graph construction ##############
   def get_case(suffix) do
     data = Input.get_lines(16, suffix) |> Enum.map(&parse_line/1)
