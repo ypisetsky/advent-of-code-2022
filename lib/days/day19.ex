@@ -60,8 +60,16 @@ defmodule Day19 do
         {orecost, claycost, obcost} = costs,
         {more, mclay, mob, mgeode} = incs
       ) do
+    numturns =
+      min(
+        state.turn,
+        Enum.max([
+          need(state.ore, orecost, state.orebot),
+          need(state.clay, claycost, state.claybot),
+          need(state.obsidian, obcost, state.obbot)
+        ])
+      )
 
-    numturns = min(state.turn, Enum.max([need(state.ore, orecost, state.orebot), need(state.clay, claycost, state.claybot), need(state.obsidian, obcost, state.obbot)]))
     %__MODULE__{
       ore: state.ore + state.orebot * numturns - orecost,
       clay: state.clay + state.claybot * numturns - claycost,
@@ -73,6 +81,7 @@ defmodule Day19 do
       geodebot: state.geodebot + mgeode,
       turn: state.turn - numturns
     }
+
     # cond do
     #   state.turn == 0 ->
     #     state
@@ -108,12 +117,17 @@ defmodule Day19 do
   end
 
   def next_possibilities(%__MODULE__{} = state, %Blueprint{} = blueprint) do
-      [
-        next(state, {blueprint.gore, 0, blueprint.gobs}, {0, 0, 0, 1}),
-        (if state.orebot < Enum.max([blueprint.obore,blueprint.clay, blueprint.gore]), do: next(state, {blueprint.ore, 0, 0}, {1, 0, 0, 0})),
-        (if state.claybot < blueprint.obclay, do: next(state, {blueprint.clay, 0, 0}, {0, 1, 0, 0})),
-        (if state.obbot < blueprint.gobs, do: next(state, {blueprint.obore, blueprint.obclay, 0}, {0, 0, 1, 0}))
-      ] |> Enum.reject(&is_nil/1)
+    [
+      next(state, {blueprint.gore, 0, blueprint.gobs}, {0, 0, 0, 1}),
+      if(state.orebot < Enum.max([blueprint.obore, blueprint.clay, blueprint.gore]),
+        do: next(state, {blueprint.ore, 0, 0}, {1, 0, 0, 0})
+      ),
+      if(state.claybot < blueprint.obclay, do: next(state, {blueprint.clay, 0, 0}, {0, 1, 0, 0})),
+      if(state.obbot < blueprint.gobs,
+        do: next(state, {blueprint.obore, blueprint.obclay, 0}, {0, 0, 1, 0})
+      )
+    ]
+    |> Enum.reject(&is_nil/1)
   end
 
   def quality(%Blueprint{} = blueprint, minutes) do
