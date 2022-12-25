@@ -14,15 +14,12 @@ defmodule Day25 do
     sofar
   end
 
+  @conv %{?2 => 2, ?1 => 1, ?0 => 0, ?- => -1, ?= => -2}
+
   def to_decimal([c | rest], sofar) do
-    to_decimal(rest, sofar * 5 + conv(c))
+    to_decimal(rest, sofar * 5 + @conv[c])
   end
 
-  def conv(?2), do: 2
-  def conv(?1), do: 1
-  def conv(?0), do: 0
-  def conv(?-), do: -1
-  def conv(?=), do: -2
 
   def to_snafu(0, sofar) do
     sofar
