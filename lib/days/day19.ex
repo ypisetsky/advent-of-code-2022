@@ -46,7 +46,7 @@ defmodule Day19 do
 
   def need(_, 0, _), do: 1
   def need(_, _, 0), do: 999
-  def need(avail, cost, prod) when avail >= cost, do: 1
+  def need(avail, cost, _prod) when avail >= cost, do: 1
 
   def need(avail, cost, prod) do
     ceil((cost - avail) / prod) + 1
@@ -57,8 +57,8 @@ defmodule Day19 do
 
   def next(
         %__MODULE__{} = state,
-        {orecost, claycost, obcost} = costs,
-        {more, mclay, mob, mgeode} = incs
+        {orecost, claycost, obcost},
+        {more, mclay, mob, mgeode}
       ) do
     numturns =
       min(
@@ -81,39 +81,6 @@ defmodule Day19 do
       geodebot: state.geodebot + mgeode,
       turn: state.turn - numturns
     }
-
-    # cond do
-    #   state.turn == 0 ->
-    #     state
-
-    #   state.ore >= orecost and state.clay >= claycost and state.obsidian >= obcost ->
-    #     %__MODULE__{
-    #       ore: state.ore + state.orebot - orecost,
-    #       clay: state.clay + state.claybot - claycost,
-    #       obsidian: state.obsidian + state.obbot - obcost,
-    #       geode: state.geode + state.geodebot,
-    #       orebot: state.orebot + more,
-    #       claybot: state.claybot + mclay,
-    #       obbot: state.obbot + mob,
-    #       geodebot: state.geodebot + mgeode,
-    #       turn: state.turn - 1
-    #     }
-
-    #   true ->
-    #     numturns = Enum.min([state.turn, need(state.ore, orecost), need(state.clay, claycost), need(state.obsidian, obcost)])
-    #     next(
-    #       %__MODULE__{
-    #         state
-    #         | ore: state.ore + state.orebot * numturns,
-    #           clay: state.clay + state.claybot * numturns,
-    #           obsidian: state.obsidian + state.obbot,
-    #           geode: state.geode + state.geodebot,
-    #           turn: state.turn - 1
-    #       },
-    #       costs,
-    #       incs
-    #     )
-    # end
   end
 
   def next_possibilities(%__MODULE__{} = state, %Blueprint{} = blueprint) do
@@ -143,7 +110,7 @@ defmodule Day19 do
     ret
   end
 
-  def walk(%{turn: 0, geode: geode} = state, _, _) do
+  def walk(%{turn: 0, geode: geode}, _, _) do
     geode
   end
 
